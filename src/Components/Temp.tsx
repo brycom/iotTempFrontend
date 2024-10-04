@@ -5,6 +5,8 @@ import "./CSS/chart.css";
 import { AgCharts } from "ag-charts-react";
 
 interface Props {
+  selectedDate: Date | null;
+  setSelectedDate: Function;
   stompClient: Client | null;
   chartData: DataPoint[];
   setChartData: Function;
@@ -20,7 +22,7 @@ interface DataPoint {
 }
 
 const combineDateTime = (date: string, time: string): Date => {
-  return new Date(`${date}T${time}`);
+  return new Date(date + "T" + time);
 };
 
 
@@ -78,11 +80,18 @@ export default function Temp(props: Props) {
       ...prevOptions,
       data: props.chartData,
     }));
+    
   }, [props.chartData]);
 
   useEffect(() => {
-    getTemp("today");
-  }, []);
+    if(props.selectedDate !== null){
+      // här ska du peta in data i chartData som igentligen heter tempData i app.
+      getTemp(props.selectedDate.toLocaleDateString());
+      
+    }else{
+      getTemp("today");
+    }
+  }, [props.selectedDate]);
 
   function getTemp(input: string) {
     fetch("http://localhost:8080/temp/" + input)
@@ -93,16 +102,25 @@ export default function Temp(props: Props) {
             ...item,
             dateTime: combineDateTime(item.date, item.time),
           }));
-    
+          if(props.lastTemp === null){
           props.setLastTemp(data[data.length - 1].temp);
+        }
           props.setChartData(transformedData);
-          
         }
       );
   }
   return <>
+  <div className="outer-container">
   <div className="chart-container">
         <AgCharts options={chartOptions} />
+      </div>
+        <div>
+          <input id="date-selector" type="Date" defaultValue={startTime.toLocaleDateString()} max={new Date().toLocaleDateString()} onChange={(e)=>{
+            props.setSelectedDate(new Date(e.target.value));
+            
+          }
+          } />
+        </div>
       </div>
   </>;
 }

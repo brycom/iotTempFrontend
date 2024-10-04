@@ -5,12 +5,6 @@ import Temp from "./Components/Temp";
 import { Client } from "@stomp/stompjs";
 import LatestTempAndHumid from "./Components/LatestTempAndHumid";
 
-/* (function () {
-  if (typeof global === "undefined") {
-    (window as any).global = window;
-  }
-})(); */
-
 
 interface HumidityDataPoint {
   id: number;
@@ -31,6 +25,7 @@ function App() {
   const [temp, setTemp] = useState<TempDataPoint[]>([]);
   const [lastTemp, setLastTemp] = useState<number | null>(null);
   const [lastHumidity, setLastHumidity] = useState<number | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   useEffect(() => {
     console.log("Trying to connect!");
@@ -63,8 +58,8 @@ function App() {
     <>
      <h1>IoT Temperature and Humidity Monitor</h1>
      <LatestTempAndHumid lastTemp={lastTemp} lastHumidity={lastHumidity}/>
-      <Temp stompClient={stompClient} chartData={temp} setChartData={setTemp} setLastTemp={setLastTemp} lastTemp={lastTemp}  />
-      <Humidity stompClient={stompClient} chartData={humidity} setChartData={sethumidity} setLastTemp={setLastTemp} lastHumidity={lastHumidity} setLastHumidity={setLastHumidity} />
+      <Temp stompClient={stompClient} chartData={temp} setChartData={setTemp} setLastTemp={setLastTemp} lastTemp={lastTemp} selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
+      <Humidity stompClient={stompClient} chartData={humidity} setChartData={sethumidity} setLastTemp={setLastTemp} lastHumidity={lastHumidity} setLastHumidity={setLastHumidity} selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
     </>
   );
 }
