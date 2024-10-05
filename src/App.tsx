@@ -11,21 +11,27 @@ interface HumidityDataPoint {
   date: string;
   time: string;
   humidity: number;
+  dateTime: Date| null;
 }
 interface TempDataPoint {
   id: number;
   date: string;
   time: string;
   temp: number;
+  dateTime: Date| null;
 }
 
 function App() {
+  const today = new Date();
   const [stompClient, setStompClient] = useState<Client | null>(null);
   const [humidity, sethumidity] = useState<HumidityDataPoint[]>([]);
   const [temp, setTemp] = useState<TempDataPoint[]>([]);
   const [lastTemp, setLastTemp] = useState<number | null>(null);
   const [lastHumidity, setLastHumidity] = useState<number | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date >(today);
+  const [startTime, setStartTime] = useState<Date>(today);
+  startTime.setHours(0, 0, 0, 0);
+  const [endTime, setEndTime] = useState<Date>(today);
 
   useEffect(() => {
     console.log("Trying to connect!");
@@ -54,12 +60,17 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    console.log("Selected date in App:", selectedDate);
+  }, [selectedDate]);
+
   return (
     <>
      <h1>IoT Temperature and Humidity Monitor</h1>
-     <LatestTempAndHumid lastTemp={lastTemp} lastHumidity={lastHumidity}/>
-      <Temp stompClient={stompClient} chartData={temp} setChartData={setTemp} setLastTemp={setLastTemp} lastTemp={lastTemp} selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
-      <Humidity stompClient={stompClient} chartData={humidity} setChartData={sethumidity} setLastTemp={setLastTemp} lastHumidity={lastHumidity} setLastHumidity={setLastHumidity} selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
+     <LatestTempAndHumid stompClient={stompClient} lastTemp={lastTemp} lastHumidity={lastHumidity}
+      setLastHumidity={setLastHumidity} temp={temp} humidity={humidity} setTemp={setTemp} setHumidity={sethumidity} setLastTemp={setLastTemp} setEndTime={setEndTime} selectedDate={selectedDate}/>
+      <Temp stompClient={stompClient} chartData={temp} setChartData={setTemp} setLastTemp={setLastTemp} lastTemp={lastTemp} selectedDate={selectedDate} setSelectedDate={setSelectedDate} endTime={endTime} setEndTime={setEndTime} startTime={startTime} setStartTime={setStartTime} />
+      <Humidity stompClient={stompClient} chartData={humidity} setChartData={sethumidity} lastHumidity={lastHumidity} setLastHumidity={setLastHumidity} selectedDate={selectedDate}  endTime={endTime} setEndTime={setEndTime} startTime={startTime} setStartTime={setStartTime} />
     </>
   );
 }

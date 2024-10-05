@@ -6,13 +6,15 @@ import "./CSS/chart.css";
 
 interface Props {
   selectedDate: Date | null;
-  setSelectedDate: Function;
   stompClient: Client | null;
   chartData: DataPoint[];
   setChartData: Function;
-  setLastTemp: Function;
   lastHumidity: number | null;
   setLastHumidity: Function;
+  endTime: Date;
+  setEndTime: Function;
+  startTime: Date;
+  setStartTime: Function;
 }
 
 interface DataPoint {
@@ -20,6 +22,7 @@ interface DataPoint {
   date: string;
   time: string;
   humidity: number;
+  dateTime: Date | null;
 }
 
 const combineDateTime = (date: string, time: string): Date => {
@@ -27,8 +30,6 @@ const combineDateTime = (date: string, time: string): Date => {
 };
 
 export default function Humidity(props: Props) {
-  const startTime = new Date();
-  startTime.setHours(0, 0, 0, 0);
   
   
   const [chartOptions, setChartOptions] = useState<any>({
@@ -60,9 +61,9 @@ export default function Humidity(props: Props) {
         type: "time",
         nice: false,
         position: "bottom",
-        min: startTime,
-        max: new Date(),
-        interval: { step: time.minute },
+        min:props.startTime,
+        max: props.endTime ,
+        interval: { step: time.hour },
         label: {
           format: "%H:%M",
         },
@@ -74,38 +75,14 @@ export default function Humidity(props: Props) {
   });
 
   useEffect(() => {
+    
     if(props.selectedDate !== null){
       getHumidity(props.selectedDate.toLocaleDateString());
     }else{
       getHumidity("today");
-      if (props.stompClient) {
-        const lastSub = props.stompClient.subscribe("/latest",
-          (message) => {
-            const parsedData = JSON.parse(message.body);
-            props.setLastHumidity(parsedData.humidity);
-            props.setLastTemp(parsedData.temperature);
-
-            const newDataPoint: DataPoint = {
-              id: props.chartData.length + 1, 
-              date: new Date().toISOString().split('T')[0],
-              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }), 
-              humidity: parsedData.humidity,
-            }
-
-            props.setChartData([...props.chartData,newDataPoint]);
-            console.log("newDataPoint: " + JSON.stringify(newDataPoint));
-            //console.log("chartData: " + JSON.stringify(props.chartData));
-            
-          }
-        );
-        
-        return () => {
-          lastSub.unsubscribe();
-        };
       
     }
-    }
-  }, [props.stompClient,props.selectedDate]);
+  }, [props.selectedDate]);
 
   const getHumidity = (input: string) => {
     fetch("http://localhost:8080/humidity/" + input )
@@ -116,6 +93,9 @@ export default function Humidity(props: Props) {
           dateTime: combineDateTime(item.date, item.time),
         }));
         props.setChartData(transformedData);
+        props.setStartTime(new Date(transformedData[0].dateTime));
+        props.setEndTime(new Date(transformedData[data.length - 1].dateTime));
+        props.endTime.setMinutes(props.endTime.getMinutes() + 10)
         
         if(props.lastHumidity === null){
         props.setLastHumidity(data[data.length - 1].humidity);
@@ -129,8 +109,39 @@ export default function Humidity(props: Props) {
     setChartOptions((prevOptions: any) => ({
       ...prevOptions,
       data: props.chartData,
+
     }));
   }, [props.chartData]);
+
+  useEffect(() => {
+    setChartOptions((prevOptions: any) => ({
+      ...prevOptions,
+      axes: [
+        {
+          type: "number",
+          position: "left",
+          title: { text: "Humidity (%)" },
+          min: 0,
+          max: 100,
+          interval: { step: 20 },
+        },
+        {
+          type: "time",
+          nice: false,
+          position: "bottom",
+          min:props.startTime,
+          max: props.endTime ,
+          interval: { step: time.minute },
+          label: {
+            format: "%H:%M",
+          },
+        },
+      ],
+    }))
+    
+
+    
+  }, [props.startTime,props.endTime,props.chartData]);
 
   return (
     <>
