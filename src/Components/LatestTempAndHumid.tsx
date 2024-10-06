@@ -42,7 +42,7 @@ export default function LatestTempAndHumid(props: Props) {
           props.setLastHumidity(parsedData.humidity);
           props.setLastTemp(parsedData.temperature);
 
-          const newhumidityDataPoint: HumidityDataPoint = {
+/*           const newhumidityDataPoint: HumidityDataPoint = {
             id: props.humidity.length + 1, 
             date: new Date().toISOString(),
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }), 
@@ -61,7 +61,7 @@ export default function LatestTempAndHumid(props: Props) {
           props.setTemp([...props.temp,newTempDataPoint])
           props.setHumidity([...props.humidity,newhumidityDataPoint]);
           
-          }
+          } */
           
         }
       );
